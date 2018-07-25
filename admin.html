@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <!-- Styles -->
+    <style>
+        h1 {
+            font-size: 42px;
+            font-family: Microsoft JhengHei;
+        }
+        
+        h3 {
+            font-family: Microsoft JhengHei;
+        }
+        
+        p {
+            font-size: 24px;
+            font-family: Microsoft JhengHei;
+        }
+        
+        div {
+            border-radius: 20px;
+        }
+        
+        input[type="submit"],
+        input[type="reset"],
+        .button {
+            background-color: #FF8E8E;
+            border: none;
+            border-radius: 15px;
+            color: white;
+            padding: 16px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font: normal 20px "Microsoft JhengHei", 'century gothic', arial, sans-serif;
+            margin: 4px 2px;
+            -webkit-transition-duration: 0.4s;
+            transition-duration: 0.4s;
+            cursor: pointer;
+        }
+        
+        input[type="submit"],
+        input[type="reset"],
+        .button1 {
+            background-color: rgb(220, 220, 220);
+            color: black;
+            border: 4px solid #FF8E8E;
+        }
+        
+        input[type="submit"]:hover,
+        input[type="reset"]:hover,
+        .button1:hover {
+            background-color: #FF8E8E;
+            color: white;
+        }
+        
+        #chartdiv {
+            width: 100%;
+            height: 500px;
+        }
+        
+        form {
+            margin: 0 0 2em 0;
+        }
+        
+        form .field {
+            margin-bottom: 1.5em;
+        }
+        
+        form .field.half {
+            display: inline-block;
+            width: 48%;
+        }
+        
+        form .field.half.first {
+            margin-right: 3%;
+        }
+        
+        @media screen and (max-width: 980px) {
+            form .field.half {
+                display: block;
+                width: 100%;
+            }
+            form .field.half.first {
+                margin-right: 0;
+            }
+        }
+        
+        label {
+            color: #555;
+            display: block;
+            font-size: 0.9em;
+            font-weight: 600;
+            margin: 0 0 1em 0;
+        }
+        
+        input[type="text"],
+        input[type="password"],
+        input[type="email"],
+        input[type="tel"],
+        select,
+        textarea {
+            -moz-appearance: none;
+            -webkit-appearance: none;
+            -ms-appearance: none;
+            appearance: none;
+            background: #fff;
+            border-radius: 10px;
+            border: none;
+            border: solid 2px #6BC6FF;
+            color: #000;
+            display: block;
+            outline: 0;
+            padding: 0 1em;
+            text-decoration: none;
+            font: normal 16px "Microsoft JhengHei", 'century gothic', arial, sans-serif;
+        }
+        
+        input[type="text"]:invalid,
+        input[type="password"]:invalid,
+        input[type="email"]:invalid,
+        input[type="tel"]:invalid,
+        select:invalid,
+        textarea:invalid {
+            box-shadow: none;
+        }
+        
+        input[type="text"]:focus,
+        input[type="password"]:focus,
+        input[type="email"]:focus,
+        input[type="tel"]:focus,
+        select:focus,
+        textarea:focus {
+            border-color: #4b4dae;
+            box-shadow: 0 0 0 1px #4b4dae;
+        }
+        
+        input[type="text"],
+        input[type="password"],
+        input[type="email"],
+        select {
+            height: 2.75em;
+        }
+        
+        textarea {
+            padding: 0.75em 1em;
+        }
+    </style>
+    <!-- Resources -->
+    <script src="./amcharts.js"></script>
+    <script src="https://www.amcharts.com/lib/3/serial.js"></script>
+    <script src="https://www.amcharts.com/lib/3/plugins/dataloader/dataloader.min.js"></script>
+    <script src="https://www.amcharts.com/lib/3/pie.js"></script>
+    <script src="https://www.amcharts.com/lib/3/plugins/export/export.min.js"></script>
+    <link rel="stylesheet" href="https://www.amcharts.com/lib/3/plugins/export/export.css" type="text/css" media="all" />
+    <script src="https://www.amcharts.com/lib/3/themes/light.js"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <!-- Chart code -->
+    <script>
+        function setDataSet(dataset_url) {
+            AmCharts.loadFile(dataset_url, {}, function(data) {
+                chart.dataProvider = AmCharts.parseJSON(data);
+                chart.validateData();
+            });
+        }
+
+        var currentProblem;
+
+        function load() {
+            setProblem('01');
+        }
+
+        function setProblem(index) {
+            currentProblem = index;
+            document.getElementById('problem_zone').style.display = 'block';
+            document.getElementById('result_zone').style.display = 'none';
+            $.getJSON('./database/' + index + '.json', function(data) {
+                document.getElementById('problem').textContent = data.problem;
+                document.getElementById('A').textContent = data.A.option;
+                document.getElementById('B').textContent = data.B.option;
+                document.getElementById('C').textContent = data.C.option;
+                document.getElementById('D').textContent = data.D.option;
+                document.getElementById('E').textContent = data.E.option;
+            });
+        }
+
+        function showResult(option) {
+            document.getElementById('result_zone').style.display = 'block';
+            document.getElementById('problem_zone').style.display = 'none';
+            $.getJSON('./database/' + currentProblem + '.json', function(data) {
+                var p = document.getElementById('result');
+                p.textContent = data[option].result;
+            });
+            contructChart();
+        }
+
+        function contructChart() {
+            var chart = AmCharts.makeChart("chartdiv", {
+                "type": "pie",
+                "theme": "light",
+                "dataLoader": {
+                    "url": './database/' + currentProblem + '_stat.json'
+                },
+                "valueField": "value",
+                "titleField": "option",
+                "outlineAlpha": 0.4,
+                "depth3D": 15,
+                "balloonText": "[[title]]<br><span style='font-size:14px'><b>[[value]]</b> ([[percents]]%)</span>",
+                "angle": 30,
+                "export": {
+                    "enabled": true
+                }
+            });
+        }
+    </script>
+</head>
+
+<body onload="load();">
+
+    <div class="header" align="center" style="padding:1em 0;width:100%;height:100px;background-color:#6BC6FF">
+        <h1>網站資料庫程式設計&nbsp;&nbsp;&nbsp;&nbsp;期末報告</h1>
+    </div>
+
+    <div class="body">
+        <!--一題的修改表格從此開始，請由後端自動生成-->
+        <div id="problem_01" style="margin:1% 0;padding:2% 5%;background-color:rgb(220, 220, 220);border: 2px solid #000000">
+            <p>題目</p>
+            <textarea name="problem" form="01" rows="5" cols="100">假設你現在正在節食減肥，但長時間處於肚餓狀態令你精神不振，剛巧略有成績之際，朋友卻邀請你吃豐富自助餐，面對美食，不知不覺下吃了一大堆。終於，在選甜品之前，你下定決心，只準自己吃一種！面對色彩繽紛而且看來十分美味的甜品，你會怎樣抉擇呢？</textarea>
+            <form id="01" action="">
+                <p>選項A</p>
+                <p style="display:inline">名稱&nbsp;&nbsp;</p><input name="option_a" type="text" size="50" style="display:inline" value="黑森林蛋糕"><br><br>
+                <p style="display:inline">結果&nbsp;&nbsp;</p><input name="result_a" type="text" size="150" style="display:inline" value="你的夢想是否已向著名利進展呢？選擇黑森林蛋糕，代表你希望找到一份薪酬高且容易出名的工作。">
+                <p>選項B</p>
+                <p style="display:inline">名稱&nbsp;&nbsp;</p><input name="option_b" type="text" size="50" style="display:inline" value="士多啤梨慕絲"><br><br>
+                <p style="display:inline">結果&nbsp;&nbsp;</p><input name="result_b" type="text" size="150" style="display:inline" value="士多啤梨慕絲呈粉紅色，意味著你的夢想也是充滿浪漫和激情，你希望遇上你的白馬王子/白雪公主，然後舉行盛大婚禮，並長相廝守。">
+                <p>選項C</p>
+                <p style="display:inline">名稱&nbsp;&nbsp;</p><input name="option_c" type="text" size="50" style="display:inline" value="水果派"><br><br>
+                <p style="display:inline">結果&nbsp;&nbsp;</p><input name="result_c" type="text" size="150" style="display:inline" value="你是一個踏實、務實的人，所以在云云甜點中選擇了較傳統的水果派。你的夢想可能只是「日出而作、日落而息」，孜孜不倦地工作，不能說你是個沒變化的人，正因這是人之常情嘛！">
+                <p>選項D</p>
+                <p style="display:inline">名稱&nbsp;&nbsp;</p><input name="option_d" type="text" size="50" style="display:inline" value="巧克力甜點"><br><br>
+                <p style="display:inline">結果&nbsp;&nbsp;</p><input name="result_d" type="text" size="150" style="display:inline" value="巧克力甜點由幾種好吃又好看的材料組成，正代表你亦是個擁有相當程度條件的人。既然你擁有優厚條件，你的夢想就是活在別人的讚賞之中。">
+                <p>選項E</p>
+                <p style="display:inline">名稱&nbsp;&nbsp;</p><input name="option_e" type="text" size="50" style="display:inline" value="新鮮水果"><br><br>
+                <p style="display:inline">結果&nbsp;&nbsp;</p><input name="result_e" type="text" size="150" style="display:inline" value="凡是你所做的每一件事，所經手的每一件東西，都力求自然舒適。如此才能夠自由行動、自由表達。你不涂指甲油，不喜歡化粧。你的雙手是用來工作而不是用來作秀的。如果有人想認識你，你家的墻上有裝了框的證書，上頭載明瞭你的地位和所參與的團體。"><br><br>
+                <input type="submit" id="QQ" name="update" value="修改">
+                <input type="reset" name="delete" value="刪除">
+            </form>
+        </div>
+        <!--一題的修改表格到此為止-->
+        <div id="problem_02" style="margin:1% 0;padding:2% 5%;background-color:rgb(220, 220, 220);border: 2px solid #000000">
+            <p>題目</p>
+            <textarea name="problem" form="02" rows="5" cols="100">假設你現在正在節食減肥，但長時間處於肚餓狀態令你精神不振，剛巧略有成績之際，朋友卻邀請你吃豐富自助餐，面對美食，不知不覺下吃了一大堆。終於，在選甜品之前，你下定決心，只準自己吃一種！面對色彩繽紛而且看來十分美味的甜品，你會怎樣抉擇呢？</textarea>
+            <form id="02" action="">
+                <p>選項A</p>
+                <p style="display:inline">名稱&nbsp;&nbsp;</p><input name="option_a" type="text" size="50" style="display:inline" value="黑森林蛋糕"><br><br>
+                <p style="display:inline">結果&nbsp;&nbsp;</p><input name="result_a" type="text" size="150" style="display:inline" value="你的夢想是否已向著名利進展呢？選擇黑森林蛋糕，代表你希望找到一份薪酬高且容易出名的工作。">
+                <p>選項B</p>
+                <p style="display:inline">名稱&nbsp;&nbsp;</p><input name="option_b" type="text" size="50" style="display:inline" value="士多啤梨慕絲"><br><br>
+                <p style="display:inline">結果&nbsp;&nbsp;</p><input name="result_b" type="text" size="150" style="display:inline" value="士多啤梨慕絲呈粉紅色，意味著你的夢想也是充滿浪漫和激情，你希望遇上你的白馬王子/白雪公主，然後舉行盛大婚禮，並長相廝守。">
+                <p>選項C</p>
+                <p style="display:inline">名稱&nbsp;&nbsp;</p><input name="option_c" type="text" size="50" style="display:inline" value="水果派"><br><br>
+                <p style="display:inline">結果&nbsp;&nbsp;</p><input name="result_c" type="text" size="150" style="display:inline" value="你是一個踏實、務實的人，所以在云云甜點中選擇了較傳統的水果派。你的夢想可能只是「日出而作、日落而息」，孜孜不倦地工作，不能說你是個沒變化的人，正因這是人之常情嘛！">
+                <p>選項D</p>
+                <p style="display:inline">名稱&nbsp;&nbsp;</p><input name="option_d" type="text" size="50" style="display:inline" value="巧克力甜點"><br><br>
+                <p style="display:inline">結果&nbsp;&nbsp;</p><input name="result_d" type="text" size="150" style="display:inline" value="巧克力甜點由幾種好吃又好看的材料組成，正代表你亦是個擁有相當程度條件的人。既然你擁有優厚條件，你的夢想就是活在別人的讚賞之中。">
+                <p>選項E</p>
+                <p style="display:inline">名稱&nbsp;&nbsp;</p><input name="option_e" type="text" size="50" style="display:inline" value="新鮮水果"><br><br>
+                <p style="display:inline">結果&nbsp;&nbsp;</p><input name="result_e" type="text" size="150" style="display:inline" value="凡是你所做的每一件事，所經手的每一件東西，都力求自然舒適。如此才能夠自由行動、自由表達。你不涂指甲油，不喜歡化粧。你的雙手是用來工作而不是用來作秀的。如果有人想認識你，你家的墻上有裝了框的證書，上頭載明瞭你的地位和所參與的團體。"><br><br>
+                <input type="submit" name="update" value="修改">
+                <input type="submit" name="delete" value="刪除">
+            </form>
+        </div>
+    </div>
+
+    <div class="footer" align="left" style="padding:1em 0;width:100%;height:150px;background-color:#6BC6FF">
+        <h3>&nbsp;&nbsp;b03602005&nbsp;&nbsp;生工四&nbsp;&nbsp;劉致緯</h3>
+        <h3>&nbsp;&nbsp;b03902123&nbsp;&nbsp;資工四&nbsp;&nbsp;陳至侃</h3>
+        <h3>&nbsp;&nbsp;b04502101&nbsp;&nbsp;機械三&nbsp;&nbsp;江承昱</h3>
+    </div>
+
+</body>
+<script src="index.js"></script>
+
+</html>
